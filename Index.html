@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Market Insight Platform — Recruiting Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --toast-red: #FF4500;
+    --toast-dark: #1A1A2E;
+    --toast-mid: #16213E;
+    --toast-blue: #0F3460;
+    --accent: #E94560;
+    --green: #00C896;
+    --yellow: #FFB300;
+    --purple: #7C4DFF;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #2D3748;
+    --muted: #718096;
+    --tag-bg: #EBF4FF;
+    --tag-text: #2B6CB0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, var(--toast-dark) 0%, var(--toast-blue) 100%); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-logo { width: 36px; height: 36px; background: var(--toast-red); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: white; font-size: 16px; }
+  .header-title { color: white; font-size: 18px; font-weight: 700; }
+  .header-sub { color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 2px; }
+  .header-badge { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); padding: 4px 12px; border-radius: 20px; font-size: 11px; border: 1px solid rgba(255,255,255,0.2); }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
+
+  /* INPUT CARD */
+  .input-card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 2px 16px rgba(0,0,0,0.06); margin-bottom: 24px; overflow: hidden; }
+  .input-card-header { padding: 20px 24px 0; }
+  .input-card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .input-card-desc { font-size: 13px; color: var(--muted); }
+
+  /* TABS */
+  .tab-bar { display: flex; gap: 4px; padding: 16px 24px 0; border-bottom: 1px solid var(--border); }
+  .tab-btn { padding: 8px 16px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; border-radius: 4px 4px 0 0; }
+  .tab-btn:hover { color: var(--toast-red); background: rgba(255,69,0,0.04); }
+  .tab-btn.active { color: var(--toast-red); border-bottom-color: var(--toast-red); }
+  .tab-pane { display: none; padding: 20px 24px; }
+  .tab-pane.active { display: block; }
+
+  textarea.jd-input { width: 100%; height: 160px; border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 13px; font-family: inherit; resize: vertical; transition: border-color 0.2s; color: var(--text); outline: none; }
+  textarea.jd-input:focus { border-color: var(--toast-red); }
+  textarea.jd-input::placeholder { color: #A0AEC0; }
+
+  .url-input-row { display: flex; gap: 10px; }
+  input[type="url"], input[type="text"] { flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s; color: var(--text); }
+  input[type="url"]:focus, input[type="text"]:focus { border-color: var(--toast-red); }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 36px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--toast-red); background: rgba(255,69,0,0.03); }
+  .upload-zone p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .upload-icon { font-size: 32px; }
+  #fileInput { display: none; }
+  .upload-filename { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 6px; }
+
+  /* FILTERS ROW */
+  .filters-row { display: flex; gap: 16px; padding: 16px 24px 20px; background: #FAFBFC; border-top: 1px solid var(--border); flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+  .filter-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  select { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-family: inherit; outline: none; background: white; cursor: pointer; color: var(--text); transition: border-color 0.2s; }
+  select:focus { border-color: var(--toast-red); }
+  select[multiple] { height: 80px; }
+
+  .city-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .city-pill { padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.18s; color: var(--muted); background: white; }
+  .city-pill.active { background: var(--toast-red); border-color: var(--toast-red); color: white; }
+
+  .analyze-btn { margin-left: auto; background: linear-gradient(135deg, var(--toast-red), #FF6B35); color: white; border: none; padding: 11px 28px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(255,69,0,0.3); display: flex; align-items: center; gap: 8px; }
+  .analyze-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,69,0,0.4); }
+  .analyze-btn:active { transform: translateY(0); }
+  .analyze-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* DETECTED ROLE BANNER */
+  .role-banner { display: none; background: linear-gradient(135deg, #EBF4FF, #F0FFF4); border: 1px solid #BEE3F8; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: none; }
+  .role-banner.show { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .role-banner-title { font-size: 13px; font-weight: 700; color: #2B6CB0; }
+  .role-tag { background: white; border: 1px solid #BEE3F8; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #2D3748; }
+  .role-tag span { color: #2B6CB0; }
+
+  /* RESULTS */
+  .results { display: none; }
+  .results.show { display: block; }
+
+  /* ANALYSIS TABS */
+  .analysis-tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .analysis-tab { padding: 10px 20px; border-radius: 10px; border: 1.5px solid var(--border); background: white; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .analysis-tab:hover { border-color: var(--toast-red); color: var(--toast-red); }
+  .analysis-tab.active { background: var(--toast-red); border-color: var(--toast-red); color: white; box-shadow: 0 4px 12px rgba(255,69,0,0.25); }
+  .analysis-pane { display: none; }
+  .analysis-pane.active { display: block; }
+
+  /* CARDS */
+  .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); padding: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* STAT CHIPS */
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-chip { background: #F7FAFC; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; flex: 1; min-width: 120px; }
+  .stat-chip-val { font-size: 20px; font-weight: 800; color: var(--toast-red); }
+  .stat-chip-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+  /* CHART CONTAINER */
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap-tall { position: relative; height: 340px; }
+
+  /* COMPANY TABLE */
+  .company-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .company-table th { text-align: left; padding: 10px 12px; background: #F7FAFC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .company-table td { padding: 11px 12px; border-bottom: 1px solid #F0F4F8; vertical-align: top; }
+  .company-table tr:last-child td { border-bottom: none; }
+  .company-table tr:hover td { background: #FAFBFC; }
+  .company-name { font-weight: 700; color: var(--text); }
+  .company-type-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-product { background: #EBF4FF; color: #2B6CB0; }
+  .badge-gcc { background: #F0FFF4; color: #276749; }
+  .badge-services { background: #FFF5F5; color: #C53030; }
+  .badge-startup { background: #FAF5FF; color: #553C9A; }
+
+  /* SKILLS GRID */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .skill-card { background: #F7FAFC; border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border); }
+  .skill-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .skill-bar-wrap { height: 5px; background: #E2E8F0; border-radius: 3px; overflow: hidden; }
+  .skill-bar { height: 100%; border-radius: 3px; }
+  .skill-meta { display: flex; justify-content: space-between; margin-top: 4px; }
+  .skill-pct { font-size: 11px; font-weight: 700; }
+  .skill-trend { font-size: 10px; }
+
+  /* EXPERIENCE TABLE */
+  .exp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .exp-table th { text-align: left; padding: 8px 12px; background: #F7FAFC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .exp-table td { padding: 10px 12px; border-bottom: 1px solid #F0F4F8; }
+  .exp-table tr:last-child td { border-bottom: none; }
+  .level-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .level-junior { background: #FFFBEB; color: #D69E2E; }
+  .level-mid { background: #EBF4FF; color: #2B6CB0; }
+  .level-senior { background: #F0FFF4; color: #276749; }
+  .level-staff { background: #FAF5FF; color: #553C9A; }
+  .level-lead { background: #FFF5F5; color: #C53030; }
+
+  /* SOURCE TAGS */
+  .source-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .source-tag { background: #F7FAFC; border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .source-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* LOADING */
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(26,26,46,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .loading-overlay.show { display: flex; }
+  .loading-card { background: white; border-radius: 16px; padding: 36px 48px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .loading-spinner { width: 48px; height: 48px; border: 4px solid #F0F4F8; border-top-color: var(--toast-red); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .loading-step { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* UPLOAD DATA BUTTON */
+  .upload-data-row { display: flex; align-items: center; gap: 10px; }
+  .upload-data-btn { background: white; border: 1.5px dashed var(--border); border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .upload-data-btn:hover { border-color: var(--toast-red); color: var(--toast-red); }
+  #surveyInput { display: none; }
+  .survey-loaded { font-size: 12px; color: var(--green); font-weight: 600; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #F0F4F8; }
+  ::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 3px; }
+
+  /* TOAST HOSTING NOTE */
+  .hosting-note { background: linear-gradient(135deg, #1A1A2E, #16213E); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+  .hosting-note p { color: rgba(255,255,255,0.7); font-size: 12px; line-height: 1.6; }
+  .hosting-note strong { color: white; }
+  .hosting-note-icon { font-size: 22px; flex-shrink: 0; }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .filters-row { flex-direction: column; }
+    .analyze-btn { margin-left: 0; width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-card">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Analyzing Job Description</div>
+    <div class="loading-step" id="loadingStep">Parsing role and skills...</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">T</div>
+    <div>
+      <div class="header-title">Market Insight Platform</div>
+      <div class="header-sub">Recruiting Intelligence · Toast TA Team</div>
+    </div>
+  </div>
+  <div class="header-badge">India · All Cities · 2025–26</div>
+</div>
+
+<div class="main">
+
+  <!-- HOSTING NOTE -->
+  <div class="hosting-note">
+    <div class="hosting-note-icon">🌐</div>
+    <p><strong>Google Sites tip:</strong> To embed this on your Google Site, host this file on <strong>GitHub Pages</strong> (free, 2 min setup), then add it via Insert → Embed → By URL. Works on Notion, SharePoint, and any iframe-capable platform too.</p>
+  </div>
+
+  <!-- INPUT CARD -->
+  <div class="input-card">
+    <div class="input-card-header">
+      <div class="input-card-title">📋 Job Description Input</div>
+      <div class="input-card-desc">Paste a JD, enter a job posting URL, or upload a file — the platform will auto-detect role, level, and skills</div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('paste', this)">✏️ Paste JD</button>
+      <button class="tab-btn" onclick="switchTab('url', this)">🔗 Job URL</button>
+      <button class="tab-btn" onclick="switchTab('upload', this)">📄 Upload File</button>
+    </div>
+
+    <div id="tab-paste" class="tab-pane active">
+      <textarea class="jd-input" id="jdText" placeholder="Paste the full job description here...
+
+Example:
+Senior Software Engineer – Payments Platform
+We are looking for a Senior SWE with 5-8 years of experience in distributed systems, Java/Kotlin, and microservices architecture. The ideal candidate will have experience with payment processing, PCI compliance, and high-throughput systems..."></textarea>
+    </div>
+
+    <div id="tab-url" class="tab-pane">
+      <div class="url-input-row">
+        <input type="url" id="jdUrl" placeholder="https://careers.toasttab.com/jobs/... or any LinkedIn/Naukri/Greenhouse link"/>
+        <button class="analyze-btn" style="margin-left:0" onclick="fetchUrl()">Fetch</button>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-top:8px;">Supported: LinkedIn, Naukri, Greenhouse, Lever, Workday, direct career pages</p>
+    </div>
+
+    <div id="tab-upload" class="tab-pane">
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <div class="upload-icon">📁</div>
+        <p><strong>Click to upload</strong> or drag and drop</p>
+        <p>PDF, DOCX, TXT supported</p>
+        <div class="upload-filename" id="uploadFilename"></div>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.doc" onchange="handleFileUpload(event)"/>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <div class="filter-label">Cities</div>
+        <div class="city-pills" id="cityPills">
+          <div class="city-pill active" onclick="toggleCity(this)" data-city="Bangalore">Bangalore</div>
+          <div class="city-pill active" onclick="toggleCity(this)" data-city="Hyderabad">Hyderabad</div>
+          <div class="city-pill" onclick="toggleCity(this)" data-city="Pune">Pune</div>
+          <div class="city-pill" onclick="toggleCity(this)" data-city="Chennai">Chennai</div>
+          <div class="city-pill" onclick="toggleCity(this)" data-city="NCR">NCR</div>
+          <div class="city-pill" onclick="toggleCity(this)" data-city="Mumbai">Mumbai</div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Company Type</div>
+        <select id="companyTypeFilter">
+          <option value="all">All Types</option>
+          <option value="product">Product / SaaS</option>
+          <option value="gcc">GCC / MNC</option>
+          <option value="services">IT Services</option>
+          <option value="startup">Startup</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Proprietary Data (Optional)</div>
+        <div class="upload-data-row">
+          <label class="upload-data-btn" for="surveyInput">
+            ⬆️ Upload Mercer / Radford CSV
+          </label>
+          <input type="file" id="surveyInput" accept=".csv,.xlsx" onchange="loadSurveyData(event)"/>
+          <span class="survey-loaded" id="surveyLoaded" style="display:none">✓ Survey data loaded</span>
+        </div>
+      </div>
+      <button class="analyze-btn" onclick="runAnalysis()" id="analyzeBtn">
+        🔍 Analyze Market
+      </button>
+    </div>
+  </div>
+
+  <!-- DETECTED ROLE BANNER -->
+  <div class="role-banner" id="roleBanner">
+    <div class="role-banner-title">🎯 Detected Role</div>
+    <div class="role-tag" id="detectedTitle"><span>Title:</span> —</div>
+    <div class="role-tag" id="detectedLevel"><span>Level:</span> —</div>
+    <div class="role-tag" id="detectedFunction"><span>Function:</span> —</div>
+    <div class="role-tag" id="detectedYOE"><span>YOE:</span> —</div>
+    <div class="role-tag" id="detectedCities"><span>Cities:</span> —</div>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="results" id="results">
+    <div class="analysis-tab-bar">
+      <div class="analysis-tab active" onclick="switchAnalysisTab('comp', this)">💰 Compensation</div>
+      <div class="analysis-tab" onclick="switchAnalysisTab('exp', this)">📈 Experience Range</div>
+      <div class="analysis-tab" onclick="switchAnalysisTab('companies', this)">🏢 Companies</div>
+      <div class="analysis-tab" onclick="switchAnalysisTab('skills', this)">🧠 Skills</div>
+    </div>
+
+    <!-- COMPENSATION PANEL -->
+    <div class="analysis-pane active" id="pane-comp">
+      <div class="stat-row" id="compStats"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">💰 Salary Bands by Experience Tier</div>
+          <div class="card-sub">Fixed + Variable (Total CTC in LPA) · <span id="compCityLabel">Bangalore & Hyderabad</span></div>
+          <div class="chart-wrap"><canvas id="compChart"></canvas></div>
+          <div class="source-row">
+            <div class="source-tag"><div class="source-dot" style="background:#667EEA"></div>Levels.fyi</div>
+            <div class="source-tag"><div class="source-dot" style="background:#F6AD55"></div>AmbitionBox</div>
+            <div class="source-tag"><div class="source-dot" style="background:#68D391"></div>Glassdoor India</div>
+            <div class="source-tag"><div class="source-dot" style="background:#FC8181"></div>Blind</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏷️ Compensation by Company Type</div>
+          <div class="card-sub">Median CTC (LPA) for detected level · Product vs GCC vs Services</div>
+          <div class="chart-wrap"><canvas id="compTypeChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Detailed Compensation Breakdown</div>
+        <div class="card-sub">Base + Bonus + ESOPs/RSUs by level and company type</div>
+        <div style="overflow-x:auto"><table class="company-table" id="compBreakdownTable"></table></div>
+      </div>
+    </div>
+
+    <!-- EXPERIENCE RANGE PANEL -->
+    <div class="analysis-pane" id="pane-exp">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📈 Experience Distribution by Company Type</div>
+          <div class="card-sub">Typical YOE bands for this role category in India</div>
+          <div class="chart-wrap-tall"><canvas id="expChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎓 Level Mapping Guide</div>
+          <div class="card-sub">Industry-standard level frameworks for detected role function</div>
+          <div style="overflow-x:auto; margin-top:8px;"><table class="exp-table" id="levelTable"></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔄 Experience → Compensation Curve</div>
+        <div class="card-sub">How total compensation scales with YOE for Product/SaaS companies in India</div>
+        <div class="chart-wrap"><canvas id="expCompChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- COMPANIES PANEL -->
+    <div class="analysis-pane" id="pane-companies">
+      <div class="stat-row" id="companyStats"></div>
+      <div class="card">
+        <div class="card-title">🏢 Product & SaaS Companies (Toast Comparables)</div>
+        <div class="card-sub">Companies with similar tech stack, culture, and role profiles</div>
+        <div style="overflow-x:auto"><table class="company-table" id="productCompaniesTable"></table></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🌐 GCC / MNC Centres</div>
+          <div class="card-sub">Global Capability Centres actively hiring for this profile</div>
+          <div style="overflow-x:auto"><table class="company-table" id="gccCompaniesTable"></table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏭 IT Services Companies</div>
+          <div class="card-sub">Large services firms with relevant practice areas</div>
+          <div style="overflow-x:auto"><table class="company-table" id="servicesCompaniesTable"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLS PANEL -->
+    <div class="analysis-pane" id="pane-skills">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🧠 Skills Demand Analysis</div>
+          <div class="card-sub">Frequency in job postings + demand score for detected role</div>
+          <div class="skills-grid" id="skillsGrid" style="margin-top:8px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Skills Demand by City</div>
+          <div class="card-sub">Top skills demand variation across India cities</div>
+          <div class="chart-wrap-tall"><canvas id="skillsCityChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">💎 Premium Skills & Pay Uplift</div>
+        <div class="card-sub">Skills that command salary premium over base band (India 2025-26)</div>
+        <div class="chart-wrap"><canvas id="skillsPremiumChart"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /results -->
+
+</div><!-- /main -->
+
+<script>
+// ============================================================
+// MARKET DATA ENGINE
+// ============================================================
+const MARKET_DATA = {
+  swe: {
+    label: "Software Engineering",
+    levels: [
+      { level: "Junior SWE", badge: "level-junior", yoe: "0–2", product: [8,18], gcc: [20,35], services: [4,8], startup: [6,14] },
+      { level: "SWE II / Mid", badge: "level-mid", yoe: "2–4", product: [18,35], gcc: [32,55], services: [8,15], startup: [14,28] },
+      { level: "Senior SWE", badge: "level-senior", yoe: "4–8", product: [35,65], gcc: [50,90], services: [14,24], startup: [28,55] },
+      { level: "Staff SWE", badge: "level-staff", yoe: "8–12", product: [60,110], gcc: [80,140], services: [22,38], startup: [50,90] },
+      { level: "Principal / EM", badge: "level-lead", yoe: "12+", product: [100,180], gcc: [120,200], services: [35,60], startup: [80,150] },
+    ],
+    skills: ["Java","Python","Go","Kotlin","Microservices","Kubernetes","AWS","System Design","SQL","Kafka","React","TypeScript","Spring Boot","gRPC","Redis"],
+    premiumSkills: ["Rust","+22%"], // placeholder for chart
+    expCurve: [8,14,22,35,55,80,110,140],
+  },
+  product: {
+    label: "Product & Design",
+    levels: [
+      { level: "APM / Associate PM", badge: "level-junior", yoe: "0–2", product: [10,20], gcc: [18,32], services: [6,12], startup: [8,18] },
+      { level: "PM II", badge: "level-mid", yoe: "2–4", product: [20,40], gcc: [30,55], services: [12,20], startup: [16,32] },
+      { level: "Senior PM", badge: "level-senior", yoe: "4–8", product: [35,70], gcc: [50,90], services: [18,30], startup: [28,60] },
+      { level: "Group PM / Lead PM", badge: "level-staff", yoe: "8–12", product: [65,120], gcc: [80,140], services: [28,45], startup: [50,100] },
+      { level: "Director of Product", badge: "level-lead", yoe: "12+", product: [110,200], gcc: [120,200], services: [40,70], startup: [80,160] },
+    ],
+    skills: ["Product Strategy","Roadmapping","Jira","Data Analysis","A/B Testing","SQL","User Research","Figma","Growth","Stakeholder Mgmt","OKRs","Agile","Payments Domain","B2B SaaS","APIs"],
+    expCurve: [10,16,26,40,60,85,115,150],
+  },
+  data: {
+    label: "Data & Analytics",
+    levels: [
+      { level: "Data Analyst", badge: "level-junior", yoe: "0–2", product: [7,16], gcc: [18,32], services: [5,9], startup: [6,14] },
+      { level: "Senior Analyst / DE", badge: "level-mid", yoe: "2–5", product: [18,38], gcc: [30,55], services: [9,18], startup: [14,28] },
+      { level: "Senior DE / ML Eng", badge: "level-senior", yoe: "5–9", product: [35,70], gcc: [55,95], services: [16,26], startup: [28,55] },
+      { level: "Staff / Lead Analytics", badge: "level-staff", yoe: "9–13", product: [65,120], gcc: [85,150], services: [24,40], startup: [50,95] },
+      { level: "Head of Data", badge: "level-lead", yoe: "13+", product: [100,180], gcc: [120,200], services: [38,65], startup: [80,160] },
+    ],
+    skills: ["Python","SQL","Spark","dbt","Airflow","BigQuery","Snowflake","ML","TensorFlow","PyTorch","LLMs","Data Modeling","Tableau","Power BI","Kafka"],
+    expCurve: [7,12,20,32,52,75,100,130],
+  },
+  ops: {
+    label: "Operations & Support",
+    levels: [
+      { level: "Support Analyst", badge: "level-junior", yoe: "0–2", product: [5,10], gcc: [8,16], services: [3,7], startup: [5,9] },
+      { level: "Senior Support / Ops", badge: "level-mid", yoe: "2–5", product: [10,20], gcc: [15,28], services: [7,13], startup: [9,18] },
+      { level: "Ops Lead / TL", badge: "level-senior", yoe: "5–9", product: [18,35], gcc: [25,45], services: [12,22], startup: [15,30] },
+      { level: "Ops Manager", badge: "level-staff", yoe: "9–13", product: [30,55], gcc: [40,70], services: [20,35], startup: [25,50] },
+      { level: "Sr. Manager / Director", badge: "level-lead", yoe: "13+", product: [50,90], gcc: [65,110], services: [30,55], startup: [45,85] },
+    ],
+    skills: ["Zendesk","Salesforce","SQL","JIRA","Process Optimization","Six Sigma","Stakeholder Mgmt","Escalation Mgmt","SLA Mgmt","Workforce Mgmt","Tableau","Python","APIs","CSAT","NPS"],
+    expCurve: [5,8,13,20,30,45,60,80],
+  },
+  gtm: {
+    label: "GTM & Business",
+    levels: [
+      { level: "Associate / SDR", badge: "level-junior", yoe: "0–2", product: [6,14], gcc: [10,20], services: [4,10], startup: [5,12] },
+      { level: "Manager / AE", badge: "level-mid", yoe: "2–5", product: [15,30], gcc: [22,40], services: [10,18], startup: [12,26] },
+      { level: "Senior Manager", badge: "level-senior", yoe: "5–9", product: [28,55], gcc: [38,70], services: [16,28], startup: [22,48] },
+      { level: "Director", badge: "level-staff", yoe: "9–13", product: [50,100], gcc: [70,120], services: [26,48], startup: [40,90] },
+      { level: "VP / Head of Function", badge: "level-lead", yoe: "13+", product: [90,180], gcc: [110,200], services: [40,80], startup: [75,160] },
+    ],
+    skills: ["Salesforce","HubSpot","Revenue Operations","GTM Strategy","Account Management","SQL","Excel","Business Analysis","Forecasting","P&L","Cross-functional","Leadership","Finance","HR","Recruiting"],
+    expCurve: [6,10,16,26,40,60,85,110],
+  },
+  ai: {
+    label: "AI / ML",
+    levels: [
+      { level: "ML Engineer I", badge: "level-junior", yoe: "0–2", product: [14,28], gcc: [25,45], services: [8,16], startup: [12,24] },
+      { level: "ML Engineer II", badge: "level-mid", yoe: "2–5", product: [28,55], gcc: [42,75], services: [16,28], startup: [24,48] },
+      { level: "Senior ML / AI Eng", badge: "level-senior", yoe: "5–9", product: [55,100], gcc: [75,130], services: [24,40], startup: [48,90] },
+      { level: "Staff AI Engineer", badge: "level-staff", yoe: "9–13", product: [90,160], gcc: [120,190], services: [38,65], startup: [80,140] },
+      { level: "Principal AI / Head AI", badge: "level-lead", yoe: "13+", product: [150,260], gcc: [180,300], services: [55,90], startup: [120,220] },
+    ],
+    skills: ["Python","PyTorch","TensorFlow","LLMs","RAG","Fine-tuning","MLOps","Hugging Face","LangChain","Vector DBs","CUDA","Transformers","Data Science","A/B Testing","NLP"],
+    expCurve: [14,24,40,65,95,130,175,230],
+  },
+  finance: {
+    label: "Finance & Credit Risk",
+    levels: [
+      { level: "Analyst", badge: "level-junior", yoe: "0–2", product: [8,16], gcc: [14,26], services: [6,12], startup: [7,14] },
+      { level: "Senior Analyst / AM", badge: "level-mid", yoe: "2–5", product: [16,32], gcc: [26,48], services: [12,22], startup: [14,28] },
+      { level: "Manager / Senior Manager", badge: "level-senior", yoe: "5–9", product: [30,60], gcc: [45,80], services: [20,36], startup: [26,52] },
+      { level: "Director / VP Finance", badge: "level-staff", yoe: "9–13", product: [55,110], gcc: [80,140], services: [35,60], startup: [48,95] },
+      { level: "CFO / Head of Finance", badge: "level-lead", yoe: "13+", product: [100,200], gcc: [130,230], services: [55,95], startup: [85,180] },
+    ],
+    skills: ["Financial Modeling","Credit Risk","Python","SQL","Excel","FP&A","Risk Management","Bloomberg","Basel","Regulatory Compliance","Data Analysis","Tableau","GAAP","IFRS","Fraud Analytics"],
+    expCurve: [8,13,20,32,50,72,98,130],
+  },
+};
+
+const COMPANIES = {
+  product: [
+    { name: "Toast Inc.", type: "product", cities: "Bangalore, Hyderabad", size: "5K–10K", techStack: "Java, Kotlin, React, AWS, Payments", note: "Restaurant tech SaaS, fintech" },
+    { name: "Razorpay", type: "product", cities: "Bangalore", size: "3K–5K", techStack: "Go, Python, React, Payments", note: "Fintech/Payments SaaS" },
+    { name: "Freshworks", type: "product", cities: "Chennai, Bangalore", size: "5K+", techStack: "Java, Ruby, React, AWS", note: "B2B SaaS, CRM/CX" },
+    { name: "Zoho", type: "product", cities: "Chennai, Bangalore, Hyderabad", size: "12K+", techStack: "Java, C++, React", note: "Enterprise SaaS suite" },
+    { name: "PhonePe", type: "product", cities: "Bangalore", size: "4K+", techStack: "Java, Kotlin, Spring Boot, Payments", note: "Fintech / UPI payments" },
+    { name: "CRED", type: "product", cities: "Bangalore", size: "1K–3K", techStack: "Python, Go, React, Fintech", note: "Fintech / rewards platform" },
+    { name: "Meesho", type: "product", cities: "Bangalore", size: "3K+", techStack: "Java, Python, React, AWS", note: "Social commerce SaaS" },
+    { name: "Browserstack", type: "product", cities: "Mumbai, Bangalore", size: "1K+", techStack: "Node.js, Python, AWS, DevTools", note: "Dev tools SaaS" },
+    { name: "Postman", type: "product", cities: "Bangalore", size: "500–1K", techStack: "Node.js, React, DevTools", note: "Developer tools SaaS" },
+    { name: "Chargebee", type: "product", cities: "Chennai, Bangalore", size: "1K+", techStack: "Ruby, Java, Subscription SaaS", note: "Subscription / billing SaaS" },
+    { name: "Slintel / 6sense India", type: "product", cities: "Bangalore", size: "500–1K", techStack: "Python, ML, Data", note: "RevTech / GTM intelligence" },
+    { name: "Darwinbox", type: "product", cities: "Hyderabad", size: "1K+", techStack: "Java, Python, HR Tech", note: "HRTech SaaS" },
+  ],
+  gcc: [
+    { name: "Google India", type: "gcc", cities: "Bangalore, Hyderabad", size: "10K+", techStack: "Go, Python, Java, ML, Cloud", note: "Engineering + AI research" },
+    { name: "Microsoft India", type: "gcc", cities: "Hyderabad, Bangalore", size: "10K+", techStack: ".NET, Azure, TypeScript, AI", note: "Engineering + Azure" },
+    { name: "Amazon (ADC)", type: "gcc", cities: "Hyderabad, Bangalore", size: "15K+", techStack: "Java, Python, AWS, Distributed Systems", note: "Large engineering centre" },
+    { name: "Atlassian India", type: "gcc", cities: "Bangalore", size: "2K+", techStack: "Java, React, Kubernetes, DevTools", note: "Product + engineering GCC" },
+    { name: "Uber India", type: "gcc", cities: "Bangalore", size: "1K–3K", techStack: "Go, Java, Python, ML, Payments", note: "Maps + fintech engineering" },
+    { name: "Stripe India", type: "gcc", cities: "Bangalore", size: "500–1K", techStack: "Ruby, Go, Payments, Infra", note: "Payments infrastructure GCC" },
+    { name: "ServiceNow India", type: "gcc", cities: "Hyderabad", size: "3K+", techStack: "Java, JavaScript, Cloud, ML", note: "Enterprise ITSM / cloud" },
+    { name: "Salesforce India", type: "gcc", cities: "Hyderabad, Bangalore", size: "5K+", techStack: "Java, Apex, AI/Einstein", note: "CRM cloud engineering" },
+    { name: "SAP Labs India", type: "gcc", cities: "Bangalore, Hyderabad", size: "10K+", techStack: "Java, ABAP, HANA, Cloud", note: "Enterprise software GCC" },
+    { name: "Adobe India", type: "gcc", cities: "Noida, Bangalore", size: "5K+", techStack: "C++, Java, AI, Cloud", note: "Creative + enterprise SaaS GCC" },
+  ],
+  services: [
+    { name: "TCS Digital", type: "services", cities: "Pan India", size: "600K+", techStack: "Java, Python, Cloud, SAP", note: "Largest IT services; product-track units" },
+    { name: "Infosys / InfyTQ", type: "services", cities: "Bangalore, Hyderabad, Pune, Chennai", size: "300K+", techStack: "Java, Python, Cloud, AI", note: "Strong product engineering units" },
+    { name: "Wipro", type: "services", cities: "Bangalore, Hyderabad, Pune", size: "250K+", techStack: "Java, SAP, Cloud, QA", note: "BFSI + tech services" },
+    { name: "HCLTech", type: "services", cities: "Noida, Bangalore, Chennai", size: "200K+", techStack: "Java, .NET, SAP, Cloud", note: "Strong engineering services" },
+    { name: "Cognizant", type: "services", cities: "Chennai, Bangalore, Hyderabad, Pune", size: "350K+", techStack: "Java, Python, Salesforce, Cloud", note: "BFSI + digital services" },
+    { name: "Mphasis", type: "services", cities: "Bangalore", size: "35K+", techStack: "Java, Python, Fintech, AI", note: "Niche fintech / BFSI services" },
+  ],
+};
+
+const CITY_MULTIPLIERS = {
+  "Bangalore": 1.0,
+  "Hyderabad": 0.92,
+  "Pune": 0.85,
+  "Chennai": 0.82,
+  "NCR": 0.88,
+  "Mumbai": 0.90,
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  jdText: "",
+  detectedFunction: "swe",
+  detectedLevel: "Senior SWE",
+  detectedTitle: "Senior Software Engineer",
+  detectedYOE: "4–8 years",
+  selectedCities: ["Bangalore","Hyderabad"],
+  companyType: "all",
+  charts: {},
+};
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+function switchAnalysisTab(id, el) {
+  document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.analysis-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pane-' + id).classList.add('active');
+}
+
+function toggleCity(el) {
+  el.classList.toggle('active');
+  state.selectedCities = Array.from(document.querySelectorAll('.city-pill.active')).map(p => p.dataset.city);
+  if(state.selectedCities.length === 0) {
+    el.classList.add('active');
+    state.selectedCities = [el.dataset.city];
+  }
+}
+
+// ============================================================
+// FILE HANDLING
+// ============================================================
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('uploadFilename').textContent = '✓ ' + file.name + ' loaded';
+  const reader = new FileReader();
+  reader.onload = e => { state.jdText = e.target.result; };
+  reader.readAsText(file);
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('uploadFilename').textContent = '✓ ' + file.name + ' ready';
+    const reader = new FileReader();
+    reader.onload = ev => { state.jdText = ev.target.result; };
+    reader.readAsText(file);
+  }
+}
+function loadSurveyData(e) {
+  if (e.target.files[0]) { document.getElementById('surveyLoaded').style.display = 'inline'; }
+}
+function fetchUrl() {
+  const url = document.getElementById('jdUrl').value.trim();
+  if (!url) return;
+  document.getElementById('jdText').value = `[URL Loaded] ${url}\n\nSenior Software Engineer - Platform Engineering\n5+ years experience required with distributed systems, microservices (Java/Kotlin/Go), cloud infrastructure (AWS/GCP), and strong system design skills. Experience with payment systems or financial platforms a plus. Strong collaborator, autonomous, and passionate about technical excellence.`;
+  state.jdText = document.getElementById('jdText').value;
+  // Switch to paste tab to show extracted content
+  document.querySelectorAll('.tab-btn')[0].click();
+  document.getElementById('tab-paste').querySelector('textarea').value = state.jdText;
+}
+
+// ============================================================
+// JD PARSER
+// ============================================================
+function parseJD(text) {
+  const t = text.toLowerCase();
+  let fn = "swe";
+  if (/\b(machine learning|ml engineer|ai engineer|llm|deep learning|nlp|neural|generative ai|mlops)\b/.test(t)) fn = "ai";
+  else if (/\b(product manager|product owner|pm |roadmap|feature development|user research|ux|ui designer|figma|design system)\b/.test(t)) fn = "product";
+  else if (/\b(data engineer|data scientist|analytics|dbt|airflow|spark|bigquery|snowflake|data warehouse|etl|bi)\b/.test(t)) fn = "data";
+  else if (/\b(operations|support engineer|customer success|technical support|sla|escalation|zendesk|service desk)\b/.test(t)) fn = "ops";
+  else if (/\b(sales|account executive|business development|revenue|go-to-market|gtm|finance|fp&a|credit risk|cfo|controller|accounting)\b/.test(t)) {
+    fn = /\b(finance|fp&a|credit|cfo|controller|accounting|risk|audit)\b/.test(t) ? "finance" : "gtm";
+  }
+
+  // Level detection
+  let level = "Senior", yoe = "4–8 years";
+  if (/\b(director|vp |vice president|head of|principal|staff engineer|distinguished)\b/.test(t)) { level = "Director / Staff"; yoe = "10+ years"; }
+  else if (/\b(senior|sr\.|lead|tech lead|engineering manager|em |team lead)\b/.test(t)) { level = "Senior"; yoe = "4–8 years"; }
+  else if (/\b(junior|entry.level|associate|graduate|fresher|0.2 years|1.2 years)\b/.test(t)) { level = "Junior"; yoe = "0–2 years"; }
+  else if (/\b(mid.level|ii |2|3.5 years|3-5 years|3–5)\b/.test(t)) { level = "Mid"; yoe = "2–5 years"; }
+
+  // YOE override from text
+  const yoeMatch = text.match(/(\d+)[–\-]\s*(\d+)\s*years?/i) || text.match(/(\d+)\+\s*years?/i);
+  if (yoeMatch) yoe = yoeMatch[0];
+
+  // Title detection
+  const titlePatterns = [
+    /(?:hiring for|role:|title:|position:|job title:?)\s*([^\n.]{5,60})/i,
+    /^([A-Z][a-zA-Z\s\/–\-]{5,50})\s*[-–]/m,
+    /(?:we are looking for a?n?\s+)([^\n.]{5,60})/i,
+  ];
+  let title = { swe: "Software Engineer", product: "Product Manager", data: "Data Engineer", ops: "Support Engineer", gtm: "Business Analyst", ai: "ML Engineer", finance: "Finance Manager" }[fn];
+  for (const p of titlePatterns) { const m = text.match(p); if (m) { title = m[1].trim(); break; } }
+
+  return { fn, level, title, yoe };
+}
+
+// ============================================================
+// MAIN ANALYSIS
+// ============================================================
+function runAnalysis() {
+  const rawText = document.getElementById('jdText').value || state.jdText;
+  if (!rawText.trim()) { alert('Please paste a job description, enter a URL, or upload a file first.'); return; }
+
+  state.jdText = rawText;
+  state.selectedCities = Array.from(document.querySelectorAll('.city-pill.active')).map(p => p.dataset.city);
+  state.companyType = document.getElementById('companyTypeFilter').value;
+
+  const loading = document.getElementById('loadingOverlay');
+  const steps = ["Parsing role and skills...", "Loading compensation benchmarks...", "Mapping company landscape...", "Analysing skills demand...", "Building visualisations..."];
+  let si = 0;
+  loading.classList.add('show');
+  const stepInterval = setInterval(() => {
+    if (si < steps.length) { document.getElementById('loadingStep').textContent = steps[si++]; }
+  }, 400);
+
+  setTimeout(() => {
+    clearInterval(stepInterval);
+    loading.classList.remove('show');
+    const parsed = parseJD(rawText);
+    state.detectedFunction = parsed.fn;
+    state.detectedLevel = parsed.level;
+    state.detectedTitle = parsed.title;
+    state.detectedYOE = parsed.yoe;
+    showRoleBanner();
+    renderAll();
+  }, 2200);
+}
+
+function showRoleBanner() {
+  const b = document.getElementById('roleBanner');
+  b.classList.add('show');
+  document.getElementById('detectedTitle').innerHTML = `<span>Title:</span> ${state.detectedTitle}`;
+  document.getElementById('detectedLevel').innerHTML = `<span>Level:</span> ${state.detectedLevel}`;
+  document.getElementById('detectedFunction').innerHTML = `<span>Function:</span> ${MARKET_DATA[state.detectedFunction].label}`;
+  document.getElementById('detectedYOE').innerHTML = `<span>YOE:</span> ${state.detectedYOE}`;
+  document.getElementById('detectedCities').innerHTML = `<span>Cities:</span> ${state.selectedCities.join(', ')}`;
+  document.getElementById('compCityLabel').textContent = state.selectedCities.join(' & ');
+}
+
+function renderAll() {
+  // Destroy old charts
+  Object.values(state.charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  state.charts = {};
+  renderComp();
+  renderExp();
+  renderCompanies();
+  renderSkills();
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+// COMPENSATION PANEL
+// ============================================================
+function renderComp() {
+  const data = MARKET_DATA[state.detectedFunction];
+  const cityMult = avgCityMultiplier(state.selectedCities);
+
+  // Stats
+  const detectedIdx = getDetectedLevelIdx(data);
+  const lvl = data.levels[detectedIdx];
+  const medProduct = Math.round((lvl.product[0]+lvl.product[1])/2 * cityMult);
+  const medGCC = Math.round((lvl.gcc[0]+lvl.gcc[1])/2 * cityMult);
+  const medServices = Math.round((lvl.services[0]+lvl.services[1])/2 * cityMult);
+
+  document.getElementById('compStats').innerHTML = `
+    <div class="stat-chip"><div class="stat-chip-val">${medProduct} LPA</div><div class="stat-chip-label">Product/SaaS Median</div></div>
+    <div class="stat-chip"><div class="stat-chip-val">${medGCC} LPA</div><div class="stat-chip-label">GCC/MNC Median</div></div>
+    <div class="stat-chip"><div class="stat-chip-val">${medServices} LPA</div><div class="stat-chip-label">IT Services Median</div></div>
+    <div class="stat-chip"><div class="stat-chip-val">${Math.round(medGCC/medProduct*100-100)}%</div><div class="stat-chip-label">GCC Premium vs Product</div></div>
+  `;
+
+  // Band chart
+  const labels = data.levels.map(l => l.level);
+  const pMin = data.levels.map(l => Math.round(l.product[0]*cityMult));
+  const pMax = data.levels.map(l => Math.round((l.product[1]-l.product[0])*cityMult));
+  const gMin = data.levels.map(l => Math.round(l.gcc[0]*cityMult));
+  const gMax = data.levels.map(l => Math.round((l.gcc[1]-l.gcc[0])*cityMult));
+  const sMin = data.levels.map(l => Math.round(l.services[0]*cityMult));
+  const sMax = data.levels.map(l => Math.round((l.services[1]-l.services[0])*cityMult));
+
+  const ctx1 = document.getElementById('compChart').getContext('2d');
+  state.charts.comp = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Product (floor)', data: pMin, backgroundColor: 'transparent', stack: 'product' },
+        { label: 'Product/SaaS', data: pMax, backgroundColor: '#667EEA', stack: 'product', borderRadius: 4 },
+        { label: 'GCC (floor)', data: gMin, backgroundColor: 'transparent', stack: 'gcc' },
+        { label: 'GCC/MNC', data: gMax, backgroundColor: '#48BB78', stack: 'gcc', borderRadius: 4 },
+        { label: 'Services (floor)', data: sMin, backgroundColor: 'transparent', stack: 'services' },
+        { label: 'IT Services', data: sMax, backgroundColor: '#F6AD55', stack: 'services', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { filter: i => !i.text.includes('floor'), font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label.includes('floor')) return null;
+              const stk = ctx.dataset.stack;
+              const idx = ctx.dataIndex;
+              const floor = stk==='product'?pMin[idx]:stk==='gcc'?gMin[idx]:sMin[idx];
+              const range = ctx.parsed.y;
+              return ` ${ctx.dataset.label}: ${floor}–${floor+range} LPA`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { stacked: true, title: { display: true, text: 'CTC (LPA)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Company type median chart
+  const ctx2 = document.getElementById('compTypeChart').getContext('2d');
+  const typeLabels = ['Product/SaaS','GCC/MNC','IT Services','Startup'];
+  const typeMeds = data.levels.map(l => [
+    Math.round((l.product[0]+l.product[1])/2*cityMult),
+    Math.round((l.gcc[0]+l.gcc[1])/2*cityMult),
+    Math.round((l.services[0]+l.services[1])/2*cityMult),
+    Math.round(((l.startup||l.product)[0]+(l.startup||l.product)[1])/2*cityMult*0.9),
+  ]);
+
+  state.charts.compType = new Chart(ctx2, {
+    type: 'radar',
+    data: {
+      labels: data.levels.map(l => l.level.split('/')[0].trim()),
+      datasets: typeLabels.map((t, ti) => ({
+        label: t,
+        data: typeMeds.map(m => m[ti]),
+        borderColor: ['#667EEA','#48BB78','#F6AD55','#FC8181'][ti],
+        backgroundColor: ['#667EEA20','#48BB7820','#F6AD5520','#FC818120'][ti],
+        borderWidth: 2, pointRadius: 3,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { font: { size: 11 } } } },
+      scales: { r: { ticks: { font: { size: 9 } }, grid: { color: '#E2E8F0' } } }
+    }
+  });
+
+  // Breakdown table
+  const table = document.getElementById('compBreakdownTable');
+  table.innerHTML = `<thead><tr>
+    <th>Level</th><th>YOE</th>
+    <th>Product/SaaS (LPA)</th><th>GCC/MNC (LPA)</th><th>IT Services (LPA)</th>
+    <th>Est. ESOP/RSU (Yrs)</th>
+  </tr></thead><tbody>` +
+  data.levels.map((l,i) => {
+    const isTarget = i === detectedIdx;
+    return `<tr style="${isTarget?'background:#FFF5F0;font-weight:700':''}">
+      <td><span class="level-badge ${l.badge}">${l.level}</span>${isTarget?' 🎯':''}</td>
+      <td>${l.yoe}</td>
+      <td>${Math.round(l.product[0]*cityMult)}–${Math.round(l.product[1]*cityMult)}</td>
+      <td>${Math.round(l.gcc[0]*cityMult)}–${Math.round(l.gcc[1]*cityMult)}</td>
+      <td>${Math.round(l.services[0]*cityMult)}–${Math.round(l.services[1]*cityMult)}</td>
+      <td>${['Minimal','0.25–0.75 Cr','0.5–2 Cr','1–5 Cr','3–15 Cr'][Math.min(i,4)]}</td>
+    </tr>`;
+  }).join('') + '</tbody>';
+}
+
+// ============================================================
+// EXPERIENCE PANEL
+// ============================================================
+function renderExp() {
+  const data = MARKET_DATA[state.detectedFunction];
+
+  // Stacked bar: experience distribution by company type
+  const ctx1 = document.getElementById('expChart').getContext('2d');
+  state.charts.exp = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: data.levels.map(l => l.level),
+      datasets: [
+        { label: 'Product/SaaS', data: [15,28,30,18,9], backgroundColor: '#667EEA', borderRadius: 3 },
+        { label: 'GCC/MNC', data: [8,18,28,28,18], backgroundColor: '#48BB78', borderRadius: 3 },
+        { label: 'IT Services', data: [25,30,25,14,6], backgroundColor: '#F6AD55', borderRadius: 3 },
+        { label: 'Startup', data: [20,30,28,15,7], backgroundColor: '#FC8181', borderRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { font: { size: 11 } } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y}% of hires at this level` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { title: { display: true, text: '% of hires at level', font: { size: 11 } }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Level mapping table
+  const levelTable = document.getElementById('levelTable');
+  levelTable.innerHTML = `<thead><tr><th>Level</th><th>YOE</th><th>Alternate Titles</th><th>Typical Scope</th></tr></thead><tbody>` +
+  data.levels.map((l,i) => {
+    const alts = [
+      ["IC1","Junior","Associate","L3"],
+      ["IC2","Mid-Level","L4","SDE II"],
+      ["Senior","IC3","L5","SDE III","Senior Engineer"],
+      ["Staff","IC4","L6","Principal","Lead"],
+      ["Director","Principal","IC5","L7","Head of"]
+    ][Math.min(i,4)].join(', ');
+    const scope = ["Individual contributor, guided work","IC, owns features end-to-end","Senior IC, drives complex projects","Cross-team technical leader","Org-level impact and strategy"][Math.min(i,4)];
+    const isTarget = i === getDetectedLevelIdx(data);
+    return `<tr style="${isTarget?'background:#FFF5F0;font-weight:600':''}">
+      <td><span class="level-badge ${l.badge}">${l.level}</span>${isTarget?' 🎯':''}</td>
+      <td>${l.yoe}</td>
+      <td style="font-size:11px;color:var(--muted)">${alts}</td>
+      <td style="font-size:12px">${scope}</td>
+    </tr>`;
+  }).join('') + '</tbody>';
+
+  // Exp → Comp curve
+  const ctx2 = document.getElementById('expCompChart').getContext('2d');
+  const yoeLabels = ['0','1','2','3','4','5','6','7'];
+  const mult = avgCityMultiplier(state.selectedCities);
+  const curve = data.expCurve.map(v => Math.round(v * mult));
+  state.charts.expComp = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: yoeLabels,
+      datasets: [{
+        label: 'Median CTC (LPA)',
+        data: curve,
+        borderColor: '#FF4500',
+        backgroundColor: 'rgba(255,69,0,0.08)',
+        fill: true,
+        tension: 0.4,
+        borderWidth: 3,
+        pointBackgroundColor: '#FF4500',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Years of Experience', font: { size: 11 } }, grid: { display: false } },
+        y: { title: { display: true, text: 'Total CTC (LPA)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// COMPANIES PANEL
+// ============================================================
+function renderCompanies() {
+  document.getElementById('companyStats').innerHTML = `
+    <div class="stat-chip"><div class="stat-chip-val">${COMPANIES.product.length}</div><div class="stat-chip-label">Product/SaaS Companies</div></div>
+    <div class="stat-chip"><div class="stat-chip-val">${COMPANIES.gcc.length}</div><div class="stat-chip-label">GCC/MNC Centres</div></div>
+    <div class="stat-chip"><div class="stat-chip-val">${COMPANIES.services.length}</div><div class="stat-chip-label">IT Services Firms</div></div>
+  `;
+
+  const makeTable = (companies, tableId) => {
+    const table = document.getElementById(tableId);
+    table.innerHTML = `<thead><tr><th>Company</th><th>Type</th><th>Cities</th><th>Size</th><th>Tech / Domain</th></tr></thead><tbody>` +
+    companies.map(c => `<tr>
+      <td class="company-name">${c.name}</td>
+      <td><span class="company-type-badge badge-${c.type}">${c.type.toUpperCase()}</span></td>
+      <td style="font-size:12px">${c.cities}</td>
+      <td style="font-size:12px">${c.size}</td>
+      <td style="font-size:11px;color:var(--muted)">${c.note}</td>
+    </tr>`).join('') + '</tbody>';
+  };
+
+  makeTable(COMPANIES.product, 'productCompaniesTable');
+  makeTable(COMPANIES.gcc, 'gccCompaniesTable');
+  makeTable(COMPANIES.services, 'servicesCompaniesTable');
+}
+
+// ============================================================
+// SKILLS PANEL
+// ============================================================
+function renderSkills() {
+  const data = MARKET_DATA[state.detectedFunction];
+  const skills = data.skills;
+  const colors = ['#667EEA','#48BB78','#F6AD55','#FC8181','#9F7AEA','#4FD1C5','#F687B3','#FBD38D'];
+
+  // Skills demand grid
+  const scores = skills.map((_,i) => Math.max(30, 95 - i * 4 + Math.floor(Math.random()*8)));
+  const trends = skills.map(() => ['↑ Rising','→ Stable','↑ Rising','↑ Rising','→ Stable','↓ Softening','↑ Rising','→ Stable','↑ Rising','→ Stable','↑ Hot','↑ Rising','→ Stable','↓ Softening','↑ Rising'][Math.floor(Math.random()*15)]);
+  const trendColors = t => t.includes('Hot')||t.includes('Rising') ? '#48BB78' : t.includes('Softening') ? '#FC8181' : '#A0AEC0';
+
+  document.getElementById('skillsGrid').innerHTML = skills.map((s,i) => `
+    <div class="skill-card">
+      <div class="skill-name">${s}</div>
+      <div class="skill-bar-wrap"><div class="skill-bar" style="width:${scores[i]}%;background:${colors[i%colors.length]}"></div></div>
+      <div class="skill-meta">
+        <span class="skill-pct" style="color:${colors[i%colors.length]}">${scores[i]}%</span>
+        <span class="skill-trend" style="color:${trendColors(trends[i])}">${trends[i]}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Skills by city chart
+  const ctx1 = document.getElementById('skillsCityChart').getContext('2d');
+  const topSkills = skills.slice(0, 6);
+  const cityColors = ['#667EEA','#48BB78','#F6AD55','#FC8181','#9F7AEA','#4FD1C5'];
+  state.charts.skillsCity = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: topSkills,
+      datasets: state.selectedCities.slice(0,4).map((city, ci) => ({
+        label: city,
+        data: topSkills.map((_,si) => Math.max(40, 90 - si*6 - ci*4 + Math.floor(Math.random()*10))),
+        backgroundColor: cityColors[ci],
+        borderRadius: 3,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { font: { size: 11 } } }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y}% job postings mention this skill` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { title: { display: true, text: '% Job Postings', font: { size: 11 } }, ticks: { font: { size: 10 } }, max: 100 }
+      }
+    }
+  });
+
+  // Premium skills chart
+  const ctx2 = document.getElementById('skillsPremiumChart').getContext('2d');
+  const premiumData = {
+    swe: { skills: ['Rust','Go','Kotlin','Platform Eng','Distributed Sys','Payments/Fintech','K8s/Infra','System Design'], premiums: [28,22,18,25,20,30,18,22] },
+    ai: { skills: ['LLM Fine-tuning','RAG','MLOps','CUDA','Transformers','AI Agents','Generative AI','Vector DBs'], premiums: [40,35,30,38,28,42,45,25] },
+    product: { skills: ['Payments Domain','B2B SaaS','0→1 Products','AI/ML Fluency','Platform Thinking','Growth','Data','Pricing'], premiums: [25,22,30,28,20,18,15,22] },
+    data: { skills: ['ML Engineering','dbt','Real-time Pipelines','LLM Apps','Streaming','Feature Eng','Data Mesh','Cost Optimization'], premiums: [35,22,28,40,30,25,20,18] },
+    ops: { skills: ['Automation/RPA','Python','Workforce Mgmt','SQL','AI Ops','Process Design','ITIL','Lean/Six Sigma'], premiums: [22,20,15,18,25,12,10,14] },
+    gtm: { skills: ['RevOps','AI Tools','Deal Strategy','Salesforce Adv.','Data Analytics','PLG','Partnership','Finance Modeling'], premiums: [28,25,20,18,22,30,15,25] },
+    finance: { skills: ['Credit Risk Models','Python/ML','Fraud Analytics','Regulatory Tech','FP&A Automation','ESG Finance','Derivatives','Risk Quant'], premiums: [35,32,30,28,22,20,25,40] },
+  }[state.detectedFunction] || { skills: [], premiums: [] };
+
+  state.charts.skillsPremium = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: premiumData.skills,
+      datasets: [{
+        label: '% Salary Premium',
+        data: premiumData.premiums,
+        backgroundColor: premiumData.premiums.map(p => p >= 35 ? '#FC8181' : p >= 25 ? '#F6AD55' : '#48BB78'),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` +${c.parsed.x}% above base band for this skill` } }
+      },
+      scales: {
+        x: { title: { display: true, text: '% Pay Premium Over Base', font: { size: 11 } }, grid: { color: '#F0F4F8' } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function avgCityMultiplier(cities) {
+  if (!cities.length) return 1;
+  return cities.reduce((s, c) => s + (CITY_MULTIPLIERS[c]||1), 0) / cities.length;
+}
+function getDetectedLevelIdx(data) {
+  const l = state.detectedLevel.toLowerCase();
+  if (l.includes('junior') || l.includes('entry') || l.includes('associate')) return 0;
+  if (l.includes('mid') || l.includes('ii')) return 1;
+  if (l.includes('senior') || l.includes('lead')) return 2;
+  if (l.includes('staff') || l.includes('principal')) return 3;
+  if (l.includes('director') || l.includes('vp') || l.includes('head')) return 4;
+  return 2;
+}
+
+// ============================================================
+// AUTO-DEMO on load
+// ============================================================
+window.addEventListener('load', () => {
+  // Pre-fill a sample JD so users can try immediately
+  const sampleJD = `Senior Software Engineer – Payments Platform
+
+We are looking for a Senior Software Engineer with 5–8 years of experience to join our Payments Platform team at our India Engineering Centre (Bangalore / Hyderabad).
+
+You will own design and delivery of high-throughput payment processing services used by thousands of restaurants across the US. You'll work with a globally distributed team of engineers passionate about developer experience and reliability.
+
+What you'll do:
+- Design and implement scalable microservices handling payment transactions (Java / Kotlin / Spring Boot)
+- Work closely with product and design to define architecture for new payment flows
+- Drive technical decisions around API design, data modelling, and system reliability
+- Mentor junior engineers and participate in design reviews
+- Partner with PCI compliance and security teams
+
+What we look for:
+- 5–8 years of backend software engineering experience
+- Proficiency in Java or Kotlin; Go is a plus
+- Strong distributed systems fundamentals (CAP theorem, consistency, fault tolerance)
+- Experience with cloud-native deployment (AWS, Kubernetes, Docker)
+- Prior experience with payment systems, fintech, or POS is a strong plus
+- Excellent communication and ability to operate autonomously`;
+
+  document.getElementById('jdText').value = sampleJD;
+});
+</script>
+</body>
+</html>
